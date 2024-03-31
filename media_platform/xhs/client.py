@@ -86,7 +86,6 @@ class XHSClient:
 
         if return_response:
             return response.text
-
         data: Dict = response.json()
         if data["success"]:
             return data.get("data", data.get("success", {}))
@@ -334,6 +333,67 @@ class XHSClient:
         notes_cursor = ""
         while notes_has_more:
             notes_res = await self.get_notes_by_creator(user_id, notes_cursor)
+            notes_has_more = notes_res.get("has_more", False)
+            notes_cursor = notes_res.get("cursor", "")
+            if "notes" not in notes_res:
+                utils.logger.info(f"[XHSClient.get_all_notes_by_creator] No 'notes' key found in response: {notes_res}")
+                break
+
+            notes = notes_res["notes"]
+            utils.logger.info(f"[XHSClient.get_all_notes_by_creator] got user_id:{user_id} notes len : {len(notes)}")
+            if callback:
+                await callback(notes)
+            await asyncio.sleep(crawl_interval)
+            result.extend(notes)
+        return result
+
+    async def get_collections_by_creator(
+            self, 
+            creator: str,
+            cursor: str,
+            page_size: int = 30
+    ) -> Dict:
+        """
+        获取博主的笔记
+        Args:
+            creator: 博主ID
+            cursor: 上一页最后一条笔记的ID
+            page_size: 分页数据长度
+
+        Returns:
+
+        """
+        # https://edith.xiaohongshu.com/api/sns/web/v2/note/collect/
+        # page?num=30
+        # &cursor=6604da450000000013025cc5
+        # &user_id=65524b72000000000802c407
+        # &image_formats=jpg,webp,avif
+        uri = "/api/sns/web/v2/note/collect/page"
+        data = {
+            "user_id": creator,
+            "cursor": cursor,
+            "num": page_size,
+            "image_formats": "jpg,webp,avif"
+        }
+        return await self.get(uri, data)
+    
+    async def get_all_collections_by_creator(self, user_id: str, crawl_interval: float = 1.0,
+                                       callback: Optional[Callable] = None) -> List[Dict]:
+        """
+        获取指定用户下的收藏的帖子，该方法会一直查找一个用户下的所有帖子信息
+        Args:
+            user_id: 用户ID
+            crawl_interval: 爬取一次的延迟单位（秒）
+            callback: 一次分页爬取结束后的更新回调函数
+
+        Returns:
+
+        """
+        result = []
+        notes_has_more = True
+        notes_cursor = ""
+        while notes_has_more:
+            notes_res = await self.get_collections_by_creator(user_id, notes_cursor)
             notes_has_more = notes_res.get("has_more", False)
             notes_cursor = notes_res.get("cursor", "")
             if "notes" not in notes_res:

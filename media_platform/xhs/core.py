@@ -88,6 +88,9 @@ class XiaoHongShuCrawler(AbstractCrawler):
             elif self.crawler_type == "creator":
                 # Get creator's information and their notes and comments
                 await self.get_creators_and_notes()
+            elif self.crawler_type == "collections":
+                # Get creator's information and their notes and comments
+                await self.get_creators_collection_notes()
             else:
                 pass
 
@@ -133,7 +136,27 @@ class XiaoHongShuCrawler(AbstractCrawler):
                 await xhs_store.save_creator(user_id, creator=createor_info)
 
             # Get all note information of the creator
-            all_notes_list = await self.xhs_client.get_all_notes_by_creator(
+            all_notes_list = await self.xhs_client.get_all_collections_by_creator(
+                user_id=user_id,
+                crawl_interval=random.random(),
+                callback=self.fetch_creator_notes_detail
+            )
+
+            note_ids = [note_item.get("note_id") for note_item in all_notes_list]
+            await self.batch_get_note_comments(note_ids)
+    
+    async def get_creators_collection_notes(self) -> None:
+        """Get creator's collected notes and retrieve their comment information."""
+        utils.logger.info("[XiaoHongShuCrawler.get_creators_and_notes] Begin get xiaohongshu creators")
+        for user_id in config.XHS_CREATOR_ID_LIST:
+
+            # get creator detail info from web html content
+            createor_info: Dict = await self.xhs_client.get_creator_info(user_id=user_id)
+            if createor_info:
+                await xhs_store.save_creator(user_id, creator=createor_info)
+
+            # Get all note information of the creator
+            all_notes_list = await self.xhs_client.get_all_collections_by_creator(
                 user_id=user_id,
                 crawl_interval=random.random(),
                 callback=self.fetch_creator_notes_detail
