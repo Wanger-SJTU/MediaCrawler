@@ -45,10 +45,13 @@ class ZhihuLogin(AbstractLogin):
         if current_web_session != no_logged_in_session:
             return True
         return False
-
+    
+    def check_need_verify(self):
+        return True
+    
     async def begin(self):
-        """Start login xiaohongshu"""
-        utils.logger.info("[ZhihuLogin.begin] Begin login xiaohongshu ...")
+        """Start login zhihu"""
+        utils.logger.info("[ZhihuLogin.begin] Begin login zhihu ...")
         if self.login_type == "qrcode":
             await self.login_by_qrcode()
         elif self.login_type == "phone":
@@ -59,8 +62,8 @@ class ZhihuLogin(AbstractLogin):
             raise ValueError("[ZhihuLogin.begin]I nvalid Login Type Currently only supported qrcode or phone or cookies ...")
 
     async def login_by_mobile(self):
-        """Login xiaohongshu by mobile"""
-        utils.logger.info("[ZhihuLogin.login_by_mobile] Begin login xiaohongshu by mobile ...")
+        """Login zhihu by mobile"""
+        utils.logger.info("[ZhihuLogin.login_by_mobile] Begin login zhihu by mobile ...")
         await asyncio.sleep(1)
         try:
             # 小红书进入首页后，有可能不会自动弹出登录框，需要手动点击登录按钮
@@ -95,7 +98,7 @@ class ZhihuLogin(AbstractLogin):
         while max_get_sms_code_time > 0:
             utils.logger.info(f"[ZhihuLogin.login_by_mobile] get sms code from redis remaining time {max_get_sms_code_time}s ...")
             await asyncio.sleep(1)
-            sms_code_key = f"xhs_{self.login_phone}"
+            sms_code_key = f"zhihu_{self.login_phone}"
             sms_code_value = redis_obj.get(sms_code_key)
             if not sms_code_value:
                 max_get_sms_code_time -= 1
@@ -119,7 +122,7 @@ class ZhihuLogin(AbstractLogin):
         try:
             await self.check_login_state(no_logged_in_session)
         except RetryError:
-            utils.logger.info("[ZhihuLogin.login_by_mobile] Login xiaohongshu failed by mobile login method ...")
+            utils.logger.info("[ZhihuLogin.login_by_mobile] Login zhihu failed by mobile login method ...")
             sys.exit()
 
         wait_redirect_seconds = 5
@@ -127,8 +130,8 @@ class ZhihuLogin(AbstractLogin):
         await asyncio.sleep(wait_redirect_seconds)
 
     async def login_by_qrcode(self):
-        """login xiaohongshu website and keep webdriver login state"""
-        utils.logger.info("[ZhihuLogin.login_by_qrcode] Begin login xiaohongshu by qrcode ...")
+        """login zhihu website and keep webdriver login state"""
+        utils.logger.info("[ZhihuLogin.login_by_qrcode] Begin login zhihu by qrcode ...")
         # login_selector = "div.login-container > div.left > div.qrcode > img"
         qrcode_img_selector = "xpath=//img[@class='qrcode-img']"
         # find login qrcode
@@ -165,7 +168,7 @@ class ZhihuLogin(AbstractLogin):
         try:
             await self.check_login_state(no_logged_in_session)
         except RetryError:
-            utils.logger.info("[ZhihuLogin.login_by_qrcode] Login xiaohongshu failed by qrcode login method ...")
+            utils.logger.info("[ZhihuLogin.login_by_qrcode] Login zhihu failed by qrcode login method ...")
             sys.exit()
 
         wait_redirect_seconds = 5
@@ -173,14 +176,14 @@ class ZhihuLogin(AbstractLogin):
         await asyncio.sleep(wait_redirect_seconds)
 
     async def login_by_cookies(self):
-        """login xiaohongshu website by cookies"""
-        utils.logger.info("[ZhihuLogin.login_by_cookies] Begin login xiaohongshu by cookie ...")
+        """login zhihu website by cookies"""
+        utils.logger.info("[ZhihuLogin.login_by_cookies] Begin login zhihu by cookie ...")
         for key, value in utils.convert_str_cookie_to_dict(self.cookie_str).items():
             if key != "web_session":  # only set web_session cookie attr
                 continue
             await self.browser_context.add_cookies([{
                 'name': key,
                 'value': value,
-                'domain': ".xiaohongshu.com",
+                'domain': ".zhihu.com",
                 'path': "/"
             }])

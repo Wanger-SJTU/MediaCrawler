@@ -9,6 +9,9 @@ CRAWLER_TYPE = "search" # 爬取类型，search(关键词搜索) | detail(帖子
 # 是否开启 IP 代理
 ENABLE_IP_PROXY = False
 
+# 是否开启 DEBUG 模式；打印相关
+DEBUG_MODE = True
+
 # 代理IP池数量
 IP_PROXY_POOL_COUNT = 2
 
@@ -70,6 +73,12 @@ WEIBO_SPECIFIED_ID_LIST = [
 
 # 指定小红书创作者ID列表
 XHS_CREATOR_ID_LIST = [
+    "5f3740e8000000000101f7aa",
+    # ........................
+]
+
+# 指定小红书创作者ID列表
+ZHIHU_CREATOR_ID_LIST = [
     "5f3740e8000000000101f7aa",
     # ........................
 ]

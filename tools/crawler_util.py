@@ -13,16 +13,18 @@ import httpx
 from PIL import Image, ImageDraw
 from playwright.async_api import Cookie, Page
 
+import config
 from . import utils
 
 
 async def find_login_qrcode(page: Page, selector: str) -> str:
     """find login qrcode image from target selector"""
     try:
-        await page.screenshot( 
-            path = './login-page.png', 
-            full_page = True 
-        )
+        if config.DEBUG_MODE:
+            await page.screenshot( 
+                path = './login-page.png', 
+                full_page = True 
+            )
         elements = await page.wait_for_selector(
             selector=selector,
             timeout=10*1000,
