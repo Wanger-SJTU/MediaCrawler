@@ -14,7 +14,7 @@ from .field import SearchNoteType, SearchSortType
 from .help import get_search_id, sign
 
 
-class XHSClient:
+class ZhihuClient:
     def __init__(
             self,
             timeout=10,
@@ -134,14 +134,14 @@ class XHSClient:
 
         """
         """get a note to check if login state is ok"""
-        utils.logger.info("[XHSClient.pong] Begin to pong xhs...")
+        utils.logger.info("[ZhihuClient.pong] Begin to pong xhs...")
         ping_flag = False
         try:
             note_card: Dict = await self.get_note_by_keyword(keyword="小红书")
             if note_card.get("items"):
                 ping_flag = True
         except Exception as e:
-            utils.logger.error(f"[XHSClient.pong] Ping xhs failed: {e}, and try to login again...")
+            utils.logger.error(f"[ZhihuClient.pong] Ping xhs failed: {e}, and try to login again...")
             ping_flag = False
         return ping_flag
 
@@ -202,7 +202,7 @@ class XHSClient:
         if res and res.get("items"):
             res_dict: Dict = res["items"][0]["note_card"]
             return res_dict
-        utils.logger.error(f"[XHSClient.get_note_by_id] get note empty and res:{res}")
+        utils.logger.error(f"[ZhihuClient.get_note_by_id] get note empty and res:{res}")
         return dict()
 
     async def get_note_comments(self, note_id: str, cursor: str = "") -> Dict:
@@ -266,7 +266,7 @@ class XHSClient:
             comments_cursor = comments_res.get("cursor", "")
             if "comments" not in comments_res:
                 utils.logger.info(
-                    f"[XHSClient.get_note_all_comments] No 'comments' key found in response: {comments_res}")
+                    f"[ZhihuClient.get_note_all_comments] No 'comments' key found in response: {comments_res}")
                 break
             comments = comments_res["comments"]
             if callback:
@@ -337,74 +337,16 @@ class XHSClient:
             notes_has_more = notes_res.get("has_more", False)
             notes_cursor = notes_res.get("cursor", "")
             if "notes" not in notes_res:
-                utils.logger.info(f"[XHSClient.get_all_notes_by_creator] No 'notes' key found in response: {notes_res}")
+                utils.logger.info(f"[ZhihuClient.get_all_notes_by_creator] No 'notes' key found in response: {notes_res}")
                 break
 
             notes = notes_res["notes"]
-            utils.logger.info(f"[XHSClient.get_all_notes_by_creator] got user_id:{user_id} notes len : {len(notes)}")
+            utils.logger.info(f"[ZhihuClient.get_all_notes_by_creator] got user_id:{user_id} notes len : {len(notes)}")
             if callback:
                 await callback(notes)
             await asyncio.sleep(crawl_interval)
             result.extend(notes)
         return result
 
-    async def get_collections_by_creator(
-            self, 
-            creator: str,
-            cursor: str,
-            page_size: int = 30
-    ) -> Dict:
-        """
-        获取博主的笔记
-        Args:
-            creator: 博主ID
-            cursor: 上一页最后一条笔记的ID
-            page_size: 分页数据长度
-
-        Returns:
-
-        """
-        # https://edith.xiaohongshu.com/api/sns/web/v2/note/collect/
-        # page?num=30
-        # &cursor=6604da450000000013025cc5
-        # &user_id=65524b72000000000802c407
-        # &image_formats=jpg,webp,avif
-        uri = "/api/sns/web/v2/note/collect/page"
-        data = {
-            "user_id": creator,
-            "cursor": cursor,
-            "num": page_size,
-            "image_formats": "jpg,webp,avif"
-        }
-        return await self.get(uri, data)
-    
-    async def get_all_collections_by_creator(self, user_id: str, crawl_interval: float = 1.0,
-                                       callback: Optional[Callable] = None) -> List[Dict]:
-        """
-        获取指定用户下的收藏的帖子，该方法会一直查找一个用户下的所有帖子信息
-        Args:
-            user_id: 用户ID
-            crawl_interval: 爬取一次的延迟单位（秒）
-            callback: 一次分页爬取结束后的更新回调函数
-
-        Returns:
-
-        """
-        result = []
-        notes_has_more = True
-        notes_cursor = ""
-        while notes_has_more:
-            notes_res = await self.get_collections_by_creator(user_id, notes_cursor)
-            notes_has_more = notes_res.get("has_more", False)
-            notes_cursor = notes_res.get("cursor", "")
-            if "notes" not in notes_res:
-                utils.logger.info(f"[XHSClient.get_all_notes_by_creator] No 'notes' key found in response: {notes_res}")
-                break
-
-            notes = notes_res["notes"]
-            utils.logger.info(f"[XHSClient.get_all_notes_by_creator] got user_id:{user_id} notes len : {len(notes)}")
-            if callback:
-                await callback(notes)
-            await asyncio.sleep(crawl_interval)
-            result.extend(notes)
-        return result
+    async def get_all_collections(self):
+        pass

@@ -70,6 +70,6 @@ WEIBO_SPECIFIED_ID_LIST = [
 
 # 指定小红书创作者ID列表
 XHS_CREATOR_ID_LIST = [
-    "63e36c9a000000002703502b",
+    "5f3740e8000000000101f7aa",
     # ........................
 ]

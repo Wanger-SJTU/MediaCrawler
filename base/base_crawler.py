@@ -39,7 +39,10 @@ class AbstractLogin(ABC):
     @abstractmethod
     async def login_by_cookies(self):
         pass
-
+    
+    @abstractmethod
+    def check_need_verify(self):
+        pass
 
 class AbstractStore(ABC):
     @abstractmethod
